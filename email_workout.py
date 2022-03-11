@@ -10,7 +10,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 HEALTH_DB_FP  = './health_db.sqlite'
-EMAIL_ATTACHMENTS_FP = './email_attachments/'
+
 
 
 def main():
@@ -20,8 +20,10 @@ protocol = main
 
 class Email_Workout:
     def __init__(self,start_date,plan):
-        global HEALTH_DB_FP,EMAIL_ATTACHMENTS_FP
-        self.email_attachments_fp = EMAIL_ATTACHMENTS_FP
+        global HEALTH_DB_FP
+        if not 'email_attachments' in [i.name for i in os.scandir()]:
+            os.mkdir('./email_attachments')
+        self.email_attachments_fp = './email_attachments/'
         self.health_db_fp = HEALTH_DB_FP
         self.start_date = pd.to_datetime(start_date)
         self.plan = plan
