@@ -1,8 +1,12 @@
 import sqlite3
 import pandas as pd
+import os
 
 conn = sqlite3.connect('./health_db.sqlite')
 cur = conn.cursor()
+
+if not 'email_attachments' in [i.name for i in os.scandir()]:
+    os.mkdir('./email_attachments')
 
 # Read from starting_db
 exercise_data = pd.read_excel('./starting_db.xlsx',sheet_name = 'exercises')
