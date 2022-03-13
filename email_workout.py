@@ -86,7 +86,7 @@ class Email_Workout:
             self.curr_cardio_fname = f"cardio_schedule_{dt.date.today().strftime('%d_%b_%Y')}.xlsx"
             self.curr_cardio_fp = self.email_attachments_fp+self.curr_cardio_fname 
             self.curr_cardio.to_excel(self.curr_cardio_fp)
-    def send_email(self):
+    def send_wo_email(self):
         email_info = pickle.load(open('email_info.pkl','rb'))
         fromaddr = email_info['from_email']
         password = email_info['password']
@@ -124,12 +124,34 @@ class Email_Workout:
         text = msg.as_string()
         server.sendmail(fromaddr, toaddr, text)
         server.quit()
+    def email_confirm(self):
+        email_info = pickle.load(open('email_info.pkl','rb'))
+        fromaddr = email_info['from_email']
+        password = email_info['password']
+        toaddr = email_info['to_email']
+
+        msg = MIMEMultipart()
+        msg['From'] = fromaddr
+        msg['To'] = toaddr
+        msg['Subject'] = f"Confirmation of Subscription{self.plan}"
+
+        body = f'''Welcome to day {self.relative_days_to_start} of {self.duration_of_plan} of the {self.plan} plan!
+        This is to confirm that you will be receiving emails for your workouts at {self.hour_of_day} every day. '''
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(fromaddr,password )
+        text = msg.as_string()
+        server.sendmail(fromaddr, toaddr, text)
+        server.quit()
 
     def email_alert(self,hour_of_day = 5):
         '''checks every 10 seconds until the hour of day is meet then sends email and sleeps 
         for 23hrs and 59 mins, then checks every 10 seoncds again until hour of day is meet...
         ends when the relative_days_to_start is greater than the duration of the plan'''
-
+        self.hour_of_day = hour_of_day
+        self.email_confirm()
         self.day_of_plan() # updates self.relative_days_to_start 
         while self.relative_days_to_start <= self.duration_of_plan:
             # 
@@ -141,7 +163,7 @@ class Email_Workout:
                 self.day_of_plan() # updates self.relative_days_to_start 
                 self.generate_excel_files()
                 try:
-                    self.send_email()
+                    self.send_wo_email()
                     print('Sent email at ',dt.datetime.now().strftime("%d-%b-%Y_%H:%M"))
                 except:
                     print('Tried sending email but failed at ',dt.datetime.now().strftime("%d-%b-%Y_%H:%M"))
